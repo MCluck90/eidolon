@@ -1,6 +1,7 @@
 'use strict';
 
 var util        = require('./util.js'),
+    helper     = require('./job-helper.js'),
     phantom     = require('phantom'),
     clc         = require('cli-color'),
     style = {
@@ -9,7 +10,8 @@ var util        = require('./util.js'),
         ajax: (clc.xtermSupported) ? clc.xterm(251).italic : clc.white.italic,
         stepHeader: (clc.xtermSupported) ? clc.xterm(208).bold : clc.yellowBright.bold,
         progress: (clc.xtermSupported) ? clc.xterm(75).italic : clc.cyan.italic,
-        error: clc.red.bold
+        error: clc.red,
+        success: (clc.xtermSupported) ? clc.xterm(10) : clc.greenBright
     };
 
 module.exports.loadUrl = function(options) {
@@ -35,131 +37,40 @@ module.exports.loadUrl = function(options) {
     });
 };
 
-function evaluateConfirmCondition(options) {
-    options = options || null;
-    // Phantom can't send back complex types (like HTMLElements)
-    // so we 'serialize' them by storing all of their attributes in an object
-    function serializeHTMLNode(node) {
-        var attributes = node.attributes,
-            serialized = {
-                tagName: node.tagName.toLowerCase()
-            };
+module.exports.init = function(job) {
+    var log = (job.verbose) ? console.log : function(){};
+    log('\nRunning: ' + style.jobHeader(job.name));
 
-        for (var i = 0, len = attributes.length; i < len; i++) {
-            var attr = attributes.item(i);
-            serialized[attr.nodeName] = attr.nodeValue;
+    log(style.ajax('Loading ') + style.url(job.initURL));
+    module.exports.loadUrl({
+        url: job.initURL,
+        success: function(page) {
+            log(style.success('Page successfully loaded'));
+            job.setPage(page);
+            job.emit('init', page);
+        },
+        error: function(status) {
+            log(style.error('Failed to load initial URL: ') + style.url(job.initURL));
+            job.emit('init-error', status);
         }
-
-        return serialized;
-    }
-
-    if (options === null) {
-        return {
-            confirmed: true,
-            results: [],
-            msg: 'No options'
-        };
-    }
-
-    var selector = options.selector,
-        attribute = options.attribute,
-        value = options.value,
-        nodes,
-        results = [];
-
-    if (attribute !== undefined && (attribute !== 'text' && attribute !== 'html')) {
-        selector = selector + '[' + attribute;
-        if (value !== undefined) {
-            selector += '=' + value;
-        }
-        selector += ']';
-    }
-
-    // Shortcut for a common confirmation
-    if (selector === 'title' && (attribute === undefined || attribute === 'text')) {
-        return {
-            confirmed: document.title === value,
-            results: serializeHTMLNode(document.getElementsByTagName('title')[0])
-        };
-    }
-
-    nodes = [].map.call(document.querySelectorAll(selector), function(node){
-        return serializeHTMLNode(node);
     });
+};
 
-    if (nodes.length === 0) {
-        return {
-            confirmed: false,
-            results: results,
-            msg: 'No matches'
-        };
-    } else if (selector.indexOf('[') >= 0) {
-        return {
-            confirmed: true,
-            results: nodes,
-            msg: 'Found your exact matches'
-        };
-    } else {
-        var attr = (attribute === 'text') ? 'innerText' :
-                   (attribute === 'html') ? 'innerHTML' : attribute;
+module.exports.confirm = function(job, step) {
+    var page = job.getPage(),
+        log = (job.verbose) ? console.log : function(){};
 
-        for (var i = 0, len = nodes.length; i < len; i++) {
-            var node = nodes[i];
-            if (node[attr] === value) {
-                results.push(node);
-            }
+    log(style.progress('Confirming ') + style.stepHeader(step.name));
+    page.evaluate(helper.confirmCondition, function(result) {
+        if (result.confirmed) {
+            log(style.stepHeader(step.name) + style.success(' Confirmed'));
+            job.emit('confirm', result);
+        } else {
+            log(style.error('Failed to confirm ') + style.stepHeader(step.name));
+            job.emit('confirm-error', result);
         }
-
-        return {
-            confirmed: results.length > 0,
-            results: results
-        };
-    }
-}
-
-function setFieldValues(fields) {
-    fields = fields || [];
-    // Phantom can't send back complex types (like HTMLElements)
-    // so we 'serialize' them by storing all of their attributes in an object
-    function serializeHTMLNode(node) {
-        var attributes = node.attributes,
-            serialized = {
-                tagName: node.tagName.toLowerCase(),
-                html: (node.innerHTML) ? node.innerHTML : null
-            };
-
-        for (var i = 0, len = attributes.length; i < len; i++) {
-            var attr = attributes.item(i);
-            serialized[attr.nodeName] = attr.nodeValue;
-        }
-
-        return serialized;
-    }
-
-    var results = [];
-
-    for (var i = 0, len = fields.length; i < len; i++) {
-        var field = fields[i],
-            value = field.value,
-            nodes = document.querySelectorAll(field.selector);
-
-        for (var j = 0, len2 = nodes.length; j < len2; j++) {
-            var node = nodes.item(j);
-            if (node.tagName.toLowerCase() === 'textarea') {
-                node.innerHTML = value;
-            } else {
-                node.setAttribute('value', value);
-            }
-
-            results.push(serializeHTMLNode(node));
-        }
-    }
-
-    return {
-        success: true,
-        results: results
-    };
-}
+    }, step.confirm);
+};
 
 module.exports.runJob = function(job, enableLogging) {
     job.success = job.success || function(){};
@@ -173,9 +84,9 @@ module.exports.runJob = function(job, enableLogging) {
         url: job.initURL,
         success: function(page) {
             log(style.progress('Page successfully loaded'));
-            page.evaluate(evaluateConfirmCondition, function(result) {
+            page.evaluate(helper.confirmCondition, function(result) {
                 if (result.confirmed) {
-                    log(style.progress('Initial confirmation completed'));
+                    log(style.success('Initial confirmation completed'));
                     job.success(page, {
                         confirmed: true
                     });
@@ -189,6 +100,7 @@ module.exports.runJob = function(job, enableLogging) {
             }, job.confirm);
         },
         error: function(status) {
+            log(style.error('Failed to load initial URL: ') + style.url(job.initURL));
             job.error({
                 status: status
             });
@@ -196,7 +108,7 @@ module.exports.runJob = function(job, enableLogging) {
     });
 };
 
-module.exports.confirmStep = function(page, step, enableLogging) {
+module.exports.confirm = function(page, step, enableLogging) {
     step.success = step.success || function(){};
     step.error = step.error || function(){};
 
@@ -204,9 +116,9 @@ module.exports.confirmStep = function(page, step, enableLogging) {
     log('\nRunning Step: ' + style.stepHeader(step.name));
 
     log(style.progress('Confirming we\'re on the right page'));
-    page.evaluate(evaluateConfirmCondition, function(result) {
+    page.evaluate(helper.confirmCondition, function(result) {
         if (result.confirmed) {
-            log(style.progress('Initial confirmation completed'));
+            log(style.success('Confirmation successful'));
             step.success(page, result);
         } else {
             log(style.error('Failed to complete initial confirmation'));
@@ -218,7 +130,7 @@ module.exports.confirmStep = function(page, step, enableLogging) {
     }, step.confirm);
 };
 
-module.exports.runStep = function(page, step, enableLogging) {
+module.exports.fillFields = function(page, step, enableLogging) {
     step.success = step.success || function(){};
     step.error = step.error || function(){};
 
@@ -226,15 +138,34 @@ module.exports.runStep = function(page, step, enableLogging) {
     log('\nRunning Step: ' + style.stepHeader(step.name));
 
     log(style.progress('Setting field values'));
-    page.evaluate(setFieldValues, function(result) {
+    page.evaluate(helper.setFieldValues, function(result) {
         if (result.success) {
-            log(style.progress('Completed step'));
+            log(style.success('Field values set'));
             step.success(page, result);
         } else {
-            log(style.error('Failed to step'));
+            log(style.error('Failed to set fields values'));
             step.error({
                 fields: false
             });
         }
     }, step.fields);
+};
+
+module.exports.finishStep = function(page, step, enableLogging) {
+    step.success = step.success || function(){};
+    step.error = step.error || function(){};
+
+    var log = (enableLogging || enableLogging === undefined) ? console.log : function(){};
+
+    log(style.progress('Following link'));
+
+    page.evaluate(helper.followLink, function(result) {
+        if (result.success) {
+            log(style.success('Finished linking'));
+            step.success(page, result);
+        } else {
+            log(style.error('Failed to complete linking'));
+            step.error(result);
+        }
+    }, step.link);
 };

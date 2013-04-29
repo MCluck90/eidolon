@@ -12,24 +12,32 @@ module.exports.Steps = {
         callback();
     },
 
-    'Run an Individual Step': function(test) {
+    'Confirm a Step': function(test) {
         job = require('../jobs/example-google.json');
-        step = job.initStep;
+        step = job.steps[0];
         test.expect(1);
 
+        var interval = setInterval(function() {
+            return 0;
+        }, 5000);
+
         step.success = function() {
+            clearInterval(interval);
             test.ok(true);
             test.done();
         };
-        step.error = test.done;
+        step.error = function() {
+            clearInterval(interval);
+            test.done();
+        };
 
         automation.loadUrl({
             url: job.initURL,
             success: function(page) {
-                automation.runStep(page, step, showLogging);
+                automation.confirm(page, step, showLogging);
             },
             error: function() {
-                test.ok(false, 'Failed to load given URL');
+                clearInterval(interval);
                 test.done();
             }
         });
@@ -37,24 +45,65 @@ module.exports.Steps = {
 
     'Fill in the Search Field': function(test) {
         job = require('../jobs/example-google.json');
-        step = job.initStep;
+        step = job.steps[0];
         test.expect(1);
+
+        var interval = setInterval(function() {
+            return 0;
+        }, 5000);
+
+        step.success = function(page, result) {
+            var actual = result.results[0].value,
+                expected = step.fields[0].value;
+
+            clearInterval(interval);
+            test.ok(actual, expected, 'Field value was not set');
+            test.done();
+        };
+        step.error = function() {
+            clearInterval(interval);
+            test.done();
+        };
 
         automation.loadUrl({
             url: job.initURL,
             success: function(page) {
-                step.success = function(page, result) {
-                    var actual = result.results[0].value,
-                        expected = step.fields[0].value;
-
-                    test.ok(actual, expected, 'Field value was not set');
-                    test.done();
-                };
-
-                automation.runStep(page, step, showLogging);
+                automation.fillFields(page, step, showLogging);
             },
             error: function() {
-                test.ok(false, 'Failed to load given URL');
+                clearInterval(interval);
+                test.done();
+            }
+        });
+    },
+
+    'Follow a Basic Link': function(test) {
+        job = require('../jobs/example-google.json');
+        step = job.steps[0];
+        test.expect(1);
+
+        var interval = setInterval(function() {
+            return 0;
+        }, 5000);
+
+        step.success = function() {
+            clearInterval(interval);
+            test.ok(true);
+            test.done();
+        };
+        step.error = function(result) {
+            clearInterval(interval);
+            console.log(result);
+            test.done();
+        };
+
+        automation.loadUrl({
+            url: job.initURL,
+            success: function(page) {
+                automation.finishStep(page, step, showLogging);
+            },
+            error: function() {
+                clearInterval(interval);
                 test.done();
             }
         });

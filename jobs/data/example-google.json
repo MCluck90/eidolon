@@ -1,0 +1,11 @@
+{
+    "name": "Example Job",
+    "steps": [
+        {
+            "name": "Google 'Google'",
+            "fields": {
+                "input[name='q']": "I'm Googling Google!"
+            }
+        }
+    ]
+}

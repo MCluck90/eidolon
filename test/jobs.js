@@ -1,65 +1,82 @@
 'use strict';
 
-var job,
-    automation = require('../src/core.js'),
-    showLogging = true;
+var Job = require('../src/job.js'),
+    job;
 
 module.exports.Jobs = {
     setUp: function(callback) {
-        delete require.cache[require.resolve('../jobs/example-google.json')];
         callback();
     },
 
     'Load in Example Job': function(test) {
-        job = require('../jobs/example-google.json');
         test.expect(1);
-        test.equal(job.name, 'Example Job', 'Expected \'Example Job\' instead got ' + job.name);
+
+        job = new Job({
+            configPath: '../jobs/example-google.json'
+        });
+
+        test.equal(job.name, 'Example Job', 'Failed to properly load example job');
         test.done();
     },
 
-    'Loads in Initial Web Page': function(test) {
-        job = require('../jobs/example-google.json');
+    'Load in Config with loadConfig': function(test) {
+        test.expect(1);
+
+        job = new Job();
+        job.loadConfig('../jobs/example-google.json');
+
+        test.equal(job.name, 'Example Job', 'Failed to properly load example job');
+        test.done();
+    },
+
+    'Load Data with loadData': function(test) {
+        test.expect(1);
+
+        job = new Job();
+        job.loadData('../jobs/data/example-google.json');
+
+        test.equal(job.data.steps[0].fields['input[name=\'q\']'], 'I\'m Googling Google!', 'Failed to load data');
+        test.done();
+    },
+
+    'Load Example Job with Data': function(test) {
+        test.expect(2);
+
+        job = new Job({
+            configPath: '../jobs/example-google.json',
+            dataPath: '../jobs/data/example-google.json'
+        });
+
+        test.equal(job.name, 'Example Job', 'Failed to properly load example job');
+        test.ok('input[name=\'q\']' in job.data.steps[0].fields, 'Failed to load data');
+        test.done();
+    },
+
+    'Initialize Job': function(test) {
         test.expect(0);
-        job.success = function() {
-            test.done();
-        };
-        job.error = function() {
-            test.ok(false, 'Failed to load: ' + job.initURL);
-            test.done();
-        };
 
-        automation.runJob(job, showLogging);
+        job = new Job({
+            configPath: '../jobs/example-google.json',
+            dataPath: '../jobs/data/example-google.json',
+            events: {
+                'init': function() {
+                    test.done();
+                },
+                'init-error': function() {
+                    test.ok(false, 'Failed to initialize Job');
+                    test.done();
+                }
+            }
+        });
+
+        job.start();
     },
 
-    'Fail to Load Invalid URL': function(test) {
-        job = require('../jobs/example-google.json');
-        test.expect(1);
-        job.initURL = 'this is not a valid url';
-        job.error = function(error) {
-            test.notEqual(error.status, 'success', 'Did not expect success in error handler');
-            test.done();
-        };
-        job.success = function(page, result) {
-            test.notEqual(result.confirmed, true, 'Should not be successful with a bad URL');
-            test.done();
-        };
+    'Fail to Initialize Job': function(test) {
+        test.expect(0);
 
-        automation.runJob(job, showLogging);
-    },
-
-    'Confirm Google Example Start Page': function(test) {
-        job = require('../jobs/example-google.json');
-        test.expect(1);
-        job.confirm = {
-            selector: 'title',
-            value: 'Google'
-        };
-        job.success = function(page, result) {
-            test.ok(result.confirmed, 'Did not confirm status of first page');
-            test.done();
-        };
-        job.error = test.done;
-
-        automation.runJob(job, showLogging);
+        job = new Job({
+            configPath: '../jobs/example-google.json'
+        })
     }
 };

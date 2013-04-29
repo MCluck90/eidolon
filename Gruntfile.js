@@ -21,11 +21,11 @@ module.exports = function(grunt) {
                 tasks: ['jshint', 'nodeunit']
             },
             jobs: {
-                files: ['src/**/*.js', 'test/**/*.js'],
+                files: ['src/**/*.js', 'test/**/*job*.js'],
                 tasks: ['jshint', 'nodeunit:jobs']
             },
             steps: {
-                files: ['src/**/*.js', 'test/**/*.js'],
+                files: ['src/**/*.js', 'test/**/*step*.js'],
                 tasks: ['jshint', 'nodeunit:steps']
             }
         },

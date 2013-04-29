@@ -6,25 +6,19 @@
         "attribute": "text",
         "value": "Google"
     },
-    "initStep": {
-        "name": "Google 'Google'",
-        "fields": [
-            {
-                "selector": "input[name='q']",
-                "value": "I'm Googling Google!"
-            }
-        ],
-        "link": {
-            "selector": "button[aria-label='Google Search']",
-            "click": true
-        }
-    },
     "steps": [
+        {
+            "name": "Google 'Google'",
+            "link": {
+                "selector": "input[value='Google Search']",
+                "click": true
+            }
+        },
         {
             "name": "Click First Result",
             "waitForReload": false,
             "confirm": {
-                "element": "li.g",
+                "selector": "li.g",
                 "exists": true
             },
             "link": {
