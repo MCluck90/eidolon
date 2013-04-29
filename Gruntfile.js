@@ -19,10 +19,20 @@ module.exports = function(grunt) {
             all: {
                 files: ['src/**/*.js', 'test/**/*.js'],
                 tasks: ['jshint', 'nodeunit']
+            },
+            jobs: {
+                files: ['src/**/*.js', 'test/**/*.js'],
+                tasks: ['jshint', 'nodeunit:jobs']
+            },
+            steps: {
+                files: ['src/**/*.js', 'test/**/*.js'],
+                tasks: ['jshint', 'nodeunit:steps']
             }
         },
         nodeunit: {
-            all: ['test/**/*.js']
+            all: ['test/**/*.js'],
+            jobs: ['test/**/*job*.js'],
+            steps: ['test/**/*step*.js']
         }
     });
 

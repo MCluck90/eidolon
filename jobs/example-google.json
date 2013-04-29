@@ -1,0 +1,36 @@
+{
+    "name": "Example Job",
+    "initURL": "https://www.google.com",
+    "confirm": {
+        "selector": "title",
+        "attribute": "text",
+        "value": "Google"
+    },
+    "initStep": {
+        "name": "Google 'Google'",
+        "fields": [
+            {
+                "selector": "input[name='q']",
+                "value": "I'm Googling Google!"
+            }
+        ],
+        "link": {
+            "selector": "button[aria-label='Google Search']",
+            "click": true
+        }
+    },
+    "steps": [
+        {
+            "name": "Click First Result",
+            "waitForReload": false,
+            "confirm": {
+                "element": "li.g",
+                "exists": true
+            },
+            "link": {
+                "selector": "li.g:first-child a",
+                "follow": true
+            }
+        }
+    ]
+}
