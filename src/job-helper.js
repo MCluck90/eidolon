@@ -51,9 +51,17 @@ module.exports = {
             selector += ']';
         }
 
-        nodes = [].map.call(document.querySelectorAll(selector), function(node){
-            return serializeHTMLNode(node);
-        });
+        try {
+            nodes = [].map.call(document.querySelectorAll(selector), function(node){
+                return serializeHTMLNode(node);
+            });
+        } catch(e) {
+            return {
+                confirmed: false,
+                results: [],
+                error: e
+            };
+        }
 
         if (nodes.length === 0) {
             return {
@@ -83,8 +91,8 @@ module.exports = {
         }
     },
 
-    setFieldValues: function(fields) {
-        fields = fields || [];
+    setFieldValues: function(data) {
+        data = data || {};
         // Phantom can't send back complex types (like HTMLElements)
         // so we 'serialize' them by storing all of their attributes in an object
         function serializeHTMLNode(node) {
@@ -104,20 +112,40 @@ module.exports = {
 
         var results = [];
 
-        for (var i = 0, len = fields.length; i < len; i++) {
-            var field = fields[i],
-                value = field.value,
-                nodes = document.querySelectorAll(field.selector);
+        for (var selector in data) {
+            if (data.hasOwnProperty(selector)) {
+                var value = data[selector],
+                    nodes;
 
-            for (var j = 0, len2 = nodes.length; j < len2; j++) {
-                var node = nodes.item(j);
-                if (node.tagName.toLowerCase() === 'textarea') {
-                    node.innerHTML = value;
-                } else {
-                    node.setAttribute('value', value);
+                // Just in case we get a bad selector
+                try {
+                    nodes = document.querySelectorAll(selector);
+                } catch (exc) {
+                    return {
+                        success: false,
+                        results: [],
+                        selector: selector
+                    };
                 }
 
-                results.push(serializeHTMLNode(node));
+                if (nodes.length === 0) {
+                    return {
+                        success: false,
+                        results: [],
+                        selector: selector
+                    };
+                }
+
+                for (var i = 0, len = nodes.length; i < len; i++) {
+                    var node = nodes.item(i);
+                    if (node.tagName.toLowerCase() === 'textarea') {
+                        node.innerHTML = value;
+                    } else {
+                        node.setAttribute('value', value);
+                    }
+
+                    results.push(serializeHTMLNode(node));
+                }
             }
         }
 
@@ -128,20 +156,39 @@ module.exports = {
     },
 
     followLink: function(options) {
-        if (options === undefined || options.selector === undefined) {
+        var selector, click, follow, submit, nodes;
+        options = options || {};
+
+        if (typeof options.url !== 'undefined') {
+            window.location.href = options.url;
+            return {
+                success: options.url
+            };
+        }
+
+        if (typeof options.selector === 'undefined') {
             return {
                 success: false,
                 error: 'selector'
             };
         }
 
-        var selector = options.selector,
-            click = options.click === true || options.follow === undefined,
-            follow = options.follow === true || !click,
+        try {
+            selector = options.selector;
+            click = options.click === true || typeof options.follow === 'undefined';
+            follow = options.follow === true || !click;
+            submit = options.submit === true || (!click && !follow);
             nodes = document.querySelectorAll(selector);
+        } catch(e) {
+            return {
+                success: false,
+                error: e
+            };
+        }
 
         if (nodes) {
             var node = nodes[0];
+            // Click the link
             if (click) {
                 if (node.fireEvent) {
                     node.fireEvent('onclick');
@@ -155,7 +202,22 @@ module.exports = {
                     success: true,
                     url: window.location.href
                 };
+            } else if (submit) {
+                // Submit a form
+                // TODO: Make check for 'form' selector
+                var event = document.createEvent('Event');
+                event.initEvent('submit', true, false);
+                node.dispatchEvent(event);
+                return {
+                    success: true,
+                    url: window.location.href
+                };
             } else if (follow) {
+                return {
+                    success: true
+                };
+                /*
+                // Get the URL from an element and go there
                 var href = node.getAttribute('href');
                 if (href) {
                     window.location.href = href;
@@ -169,6 +231,7 @@ module.exports = {
                         error: 'follow'
                     };
                 }
+                */
             } else {
                 return {
                     success: false,

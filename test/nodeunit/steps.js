@@ -2,7 +2,7 @@
 
 var job,
     step,
-    automation = require('../src/core.js'),
+    automation = require('../../src/core.js'),
     showLogging = true;
 
 module.exports.Steps = {
@@ -13,7 +13,7 @@ module.exports.Steps = {
     },
 
     'Confirm a Step': function(test) {
-        job = require('../jobs/example-google.json');
+        job = require('../../jobs/example-google.json');
         step = job.steps[0];
         test.expect(1);
 
@@ -44,7 +44,7 @@ module.exports.Steps = {
     },
 
     'Fill in the Search Field': function(test) {
-        job = require('../jobs/example-google.json');
+        job = require('../../jobs/example-google.json');
         step = job.steps[0];
         test.expect(1);
 
@@ -78,7 +78,7 @@ module.exports.Steps = {
     },
 
     'Follow a Basic Link': function(test) {
-        job = require('../jobs/example-google.json');
+        job = require('../../jobs/example-google.json');
         step = job.steps[0];
         test.expect(1);
 

@@ -1,27 +1,27 @@
 {
     "name": "Example Job",
     "initURL": "https://www.google.com",
-    "confirm": {
-        "selector": "title",
-        "attribute": "text",
-        "value": "Google"
-    },
     "steps": [
         {
             "name": "Google 'Google'",
+            "confirm": {
+                "selector": "title",
+                "attribute": "text",
+                "value": "Google"
+            },
             "link": {
-                "selector": "input[value='Google Search']",
-                "click": true
+                "selector": "form[action='/search']",
+                "submit": true
             }
         },
         {
             "name": "Click First Result",
-            "waitForReload": false,
             "confirm": {
                 "selector": "li.g",
                 "exists": true
             },
             "link": {
+                "waitForPageLoad": true,
                 "selector": "li.g:first-child a",
                 "follow": true
             }

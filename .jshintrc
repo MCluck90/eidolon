@@ -33,5 +33,14 @@
     "node": true,
     "jquery": true,
     "devel": true,
-    "onevar": false
+    "onevar": false,
+    "globals": {
+        "describe": true,
+        "it": true,
+        "suite": true,
+        "test": true,
+        "expect": true,
+        "assert": true,
+        "afterEach": true
+    }
 }

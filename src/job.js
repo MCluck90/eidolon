@@ -11,6 +11,7 @@ var util = require('./util.js'),
 Job = function(options) {
     var defaults = {
         autostart: false,
+        autorun: true,
         verbose: true,
         configPath: '',
         dataPath: '',
@@ -32,23 +33,38 @@ Job = function(options) {
     }
 
     this.__stepIndex = 0;
+    this.verbose = !!options.verbose;
     this.name = (options.name.length > 0) ? options.name : this.name;
     this.initURL = (options.initURL.length > 0) ? options.initURL : this.initURL;
     this.confirm = (options.confirm) ? options.confirm : this.confirm;
     this.steps = (options.steps) ? options.steps : this.steps;
     this.data = (options.data !== null) ? options.data : this.data;
 
-    /** Success event handlers **/
-    this.on('init', function() {
+    // Bind any custom event handlers
+    var events = ['init',       'confirm',       'fill',       'link',       'close',
+                  'init-error', 'confirm-error', 'fill-error', 'link-error'];
+    for (var i = 0, len = events.length; i < len; i++) {
+        var eventType = events[i];
+        if (options.events.hasOwnProperty(eventType) && typeof options.events[eventType] === 'function') {
+            this.on(eventType, options.events[eventType]);
+        }
+    }
 
+    /** Success event handlers **/
+    var self = this;
+    this.on('init', function() {
+        if (self.autorun) {
+            auto.confirm(self, self.steps[0]);
+        }
     });
 
     this.on('confirm', function() {
-
+        if (self.autorun) {
+            auto.fillFields(self, self.getStep(), self.getData());
+        }
     });
 
     this.on('fill', function() {
-
     });
 
     this.on('link', function() {
@@ -75,16 +91,6 @@ Job = function(options) {
     this.on('link-error', function() {
 
     });
-
-    // Bind any custom event handlers
-    var events = ['init',       'confirm',       'fill',       'link',       'close',
-                  'init-error', 'confirm-error', 'fill-error', 'link-error'];
-    for (var i = 0, len = events.length; i < len; i++) {
-        var eventType = events[i];
-        if (options.events.hasOwnProperty(eventType) && typeof options.events[eventType] === 'function') {
-            this.on(eventType, options.events[eventType]);
-        }
-    }
 
     if (options.autostart) {
         this.start();
@@ -135,6 +141,16 @@ Job.prototype.getStep = function(stepIndex) {
 
 Job.prototype.nextStep = function() {
     return this.steps[++this.__stepIndex];
+};
+
+Job.prototype.getData = function(stepIndex) {
+    stepIndex = (stepIndex === undefined) ? this.__stepIndex : stepIndex;
+
+    if (this.data && this.data.steps !== undefined && this.data.steps.length > stepIndex) {
+        return this.data.steps[stepIndex];
+    } else {
+        return { fields: {} };
+    }
 };
 
 Job.prototype.getPage = function() {

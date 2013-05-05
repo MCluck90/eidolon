@@ -27,8 +27,7 @@ Step = function(options) {
 
     this.name = (options.name.length > 0) ? options.name : this.name;
     this.confirm = (options.confirm && options.confirm.selector.length > 0) ? options.confirm : this.confirm;
-    this.fields = (options.fields.length > 0) ? options.fields : this.fields;
-    this.waitForReload = (options.waitForReload || this.waitForReload);
+    this.waitForReload = !!options.waitForReload;
     this.link = (options.link && options.link.selector.length > 0) ? options.link : this.link;
 };
 
