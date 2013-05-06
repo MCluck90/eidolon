@@ -61,6 +61,17 @@ module.exports.confirm = function(job, step) {
     var page = job.getPage(),
         log  = (job.verbose) ? console.log : function(){};
 
+    page.set('onError', function(msg, trace) {
+        job.emit('confirm-error', step, {
+            confirmed: false,
+            results: [],
+            error: {
+                msg: msg,
+                trace: trace
+            }
+        });
+    });
+
     log(style.progress('Confirming ') + style.stepHeader(step.name));
     page.evaluate(helper.confirmCondition, function(result) {
         if (result.confirmed) {
@@ -76,6 +87,17 @@ module.exports.confirm = function(job, step) {
 module.exports.fillFields = function(job, step, data) {
     var page = job.getPage(),
         log  = (job.verbose) ? console.log : function(){};
+
+    page.set('onError', function(msg, trace) {
+        job.emit('fill-error', step, {
+            success: false,
+            results: [],
+            error: {
+                msg: msg,
+                trace: trace
+            }
+        });
+    });
 
     log('Running Step: ' + style.stepHeader(step.name));
     log(style.progress('Setting field values'));
@@ -97,13 +119,32 @@ module.exports.followLink = function(job, step) {
         waitForUrlChange = !!link.waitForUrlChange,
         waitForPageLoad  = !!link.waitForPageLoad || !!link.url;
 
+    page.set('onError', function(msg, trace) {
+        job.emit('link-error', step, {
+            success: false,
+            error: {
+                msg: msg,
+                trace: trace
+            }
+        });
+    });
+
     if (waitForUrlChange) {
         page.set('onUrlChanged', function() {
             job.emit('link', step, { success: true });
         });
     } else if (waitForPageLoad) {
-        page.set('onLoadFinished', function() {
-            job.emit('link', step, { success: true });
+        page.set('onLoadFinished', function(status) {
+            if (status === 'success') {
+                job.emit('link', step, { success: true });
+            } else {
+                job.emit('link-error', step, {
+                    success: false,
+                    error: {
+                        failedToLoad: true
+                    }
+                });
+            }
         });
     }
 

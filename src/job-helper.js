@@ -38,8 +38,7 @@ module.exports = {
             results.push(serializeHTMLNode(document.getElementsByTagName('title')[0]));
             return {
                 confirmed: document.title === value,
-                results: results,
-                msg: 'title'
+                results: results
             };
         }
 
