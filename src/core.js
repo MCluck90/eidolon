@@ -116,6 +116,9 @@ module.exports.followLink = function(job, step) {
     var page             = job.getPage(),
         log              = (job.verbose) ? console.log : function(){},
         link             = step.link,
+        linkURL          = '',
+        linkStatus       = 200,
+        allow404         = !!link.allow404,
         waitForUrlChange = !!link.waitForUrlChange,
         waitForPageLoad  = !!link.waitForPageLoad || !!link.url;
 
@@ -129,12 +132,32 @@ module.exports.followLink = function(job, step) {
         });
     });
 
-    if (waitForUrlChange) {
-        page.set('onUrlChanged', function() {
+    page.set('onResourceReceived', function(response) {
+        if (response.url === linkURL) {
+            linkStatus = +response.status;
+            if (!allow404 && linkStatus === 404) {
+                job.emit('link-error', step, {
+                    error: {
+                        failedToLoad: true
+                    }
+                });
+            }
+        }
+    });
+
+    page.set('onUrlChanged', function(url) {
+        linkURL = url;
+        if (waitForUrlChange && allow404) {
             job.emit('link', step, { success: true });
-        });
-    } else if (waitForPageLoad) {
+        }
+    });
+
+    if (waitForPageLoad) {
         page.set('onLoadFinished', function(status) {
+            if (!allow404 && linkStatus === 404) {
+                return;
+            }
+
             if (status === 'success') {
                 job.emit('link', step, { success: true });
             } else {

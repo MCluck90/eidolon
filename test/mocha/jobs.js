@@ -456,7 +456,7 @@ describe('Jobs', function() {
                 auto.init(job);
             });
 
-            it('when given a fake URL', function(done) {
+            it('when directed to a hard 404', function(done) {
                 job = new Job({
                     autostart: false,
                     autorun: false,
@@ -481,7 +481,37 @@ describe('Jobs', function() {
                 });
 
                 job.getStep().link = {
-                    url: 'http://this-site-does-not-exist.co.uk.de'
+                    url: 'http://there.is.no.spoon.com'
+                };
+                auto.init(job);
+            });
+
+            it('when directed to a soft 404', function(done) {
+                job = new Job({
+                    autostart: false,
+                    autorun: false,
+                    configPath: '../jobs/example-google.json',
+                    verbose: verbose,
+                    events: {
+                        'init': function() {
+                            auto.followLink(job, job.getStep());
+                        },
+                        'init-error': function() {
+                            expect().fail('Failed to initialize page');
+                            done();
+                        },
+                        'link': function() {
+                            expect().fail('Incorrectly performed a link');
+                            done();
+                        },
+                        'link-error': function() {
+                            done();
+                        }
+                    }
+                });
+
+                job.getStep().link = {
+                    url: 'http://www.google.com/not-a-real-page'
                 };
                 auto.init(job);
             });
