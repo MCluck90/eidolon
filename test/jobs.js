@@ -1,7 +1,7 @@
 'use strict';
 
-var Job = require('../../src/job.js'),
-    auto = require('../../src/core.js'),
+var Job = require('../src/job.js'),
+    auto = require('../src/core.js'),
     expect = require('expect.js'),
     verbose = false,
     job;

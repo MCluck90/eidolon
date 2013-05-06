@@ -1,6 +1,5 @@
 module.exports = function(grunt) {
 
-    grunt.loadNpmTasks('grunt-contrib-nodeunit');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-simple-mocha');
@@ -19,19 +18,8 @@ module.exports = function(grunt) {
         watch: {
             all: {
                 files: ['src/**/*.js', 'test/**/*.js'],
-                tasks: ['jshint', 'nodeunit']
-            },
-            nodeunit: {
-                files: ['src/**/*.js', 'test/nodeunit/**/*.js'],
-                tasks: ['jshint', 'nodeunit']
-            },
-            mocha: {
-                files: ['src/**/*.js', 'test/mocha/**/*.js'],
                 tasks: ['jshint', 'simplemocha']
             }
-        },
-        nodeunit: {
-            all: ['test/nodeunit/**/*.js']
         },
         simplemocha: {
             options: {
@@ -42,7 +30,7 @@ module.exports = function(grunt) {
             },
 
             all: {
-                src: ['test/mocha/**/*.js']
+                src: ['test/**/*.js']
             }
 
         }
