@@ -1,0 +1,15 @@
+{
+    "name": "Search Stack Overflow",
+    "steps": [
+        {
+            "name": "Search for 'Node.js'",
+            "fields": {
+                "input[name='q']": {
+                    "value": "node.js",
+                    "keypress": true,
+                    "enter": true
+                }
+            }
+        }
+    ]
+}
