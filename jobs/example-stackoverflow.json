@@ -1,0 +1,28 @@
+{
+    "name": "Search Stack Overflow",
+    "initURL": "http://www.stackoverflow.com",
+    "steps": [
+        {
+            "name": "Search for 'Node.js'",
+            "confirm": {
+                "selector": "title",
+                "value": "Stack Overflow"
+            },
+            "link": {
+                "selector" :"form[action='/search']",
+                "submit": true
+            }
+        },
+        {
+            "name": "Open First Result",
+            "confirm": {
+                "selector": "input[value='[node.js]']",
+                "exists": true
+            },
+            "link": {
+                "selector": "a.question-hyperlink",
+                "click": true
+            }
+        }
+    ]
+}

@@ -33,6 +33,7 @@ Job = function(options) {
     }
 
     this.__stepIndex = 0;
+    this.autorun = !!options.autorun;
     this.verbose = !!options.verbose;
     this.name = (options.name.length > 0) ? options.name : this.name;
     this.initURL = (options.initURL.length > 0) ? options.initURL : this.initURL;
@@ -65,14 +66,26 @@ Job = function(options) {
     });
 
     this.on('fill', function() {
+        if (self.autorun) {
+            auto.followLink(self, self.getStep());
+        }
     });
 
     this.on('link', function() {
-
+        if (self.autorun) {
+            var step = self.nextStep();
+            if (step !== undefined) {
+                auto.confirm(self, step);
+            } else {
+                this.emit('close');
+            }
+        }
     });
 
     this.on('close', function() {
-
+        if (self.autorun) {
+            this.exit();
+        }
     });
 
     /** Error event handlers **/
@@ -139,6 +152,23 @@ Job.prototype.getStep = function(stepIndex) {
     return this.steps[stepIndex];
 };
 
+Job.prototype.setCurrentStep = function(step) {
+    if (typeof step === 'number') {
+        if (step < this.steps.length) {
+            this.__stepIndex = step;
+        } else {
+            throw new RangeError('Exceeded number of set steps');
+        }
+    } else {
+        var index = this.steps.indexOf(step);
+        if (index !== -1) {
+            this.__stepIndex = index;
+        } else {
+            throw new ReferenceError('Could not find given step');
+        }
+    }
+};
+
 Job.prototype.nextStep = function() {
     return this.steps[++this.__stepIndex];
 };
@@ -163,6 +193,12 @@ Job.prototype.setPage = function(page) {
 
 Job.prototype.start = function() {
     auto.init(this);
+};
+
+Job.prototype.exit = function() {
+    if (this.page && typeof this.page.exit === 'function') {
+        this.page.exit();
+    }
 };
 
 module.exports = Job;

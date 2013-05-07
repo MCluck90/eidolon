@@ -4,7 +4,11 @@
         {
             "name": "Google 'Google'",
             "fields": {
-                "input[name='q']": "I'm Googling Google!"
+                "input[name='q']": {
+                    "value": "Google",
+                    "keypress": true,
+                    "enter": true
+                }
             }
         }
     ]

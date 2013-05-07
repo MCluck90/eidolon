@@ -113,8 +113,13 @@ module.exports = {
 
         for (var selector in data) {
             if (data.hasOwnProperty(selector)) {
-                var value = data[selector],
+                var value = data[selector].value,
+                    keypress = !!data[selector].keypress,
                     nodes;
+
+                if (keypress === true) {
+                    continue;
+                }
 
                 // Just in case we get a bad selector
                 try {
@@ -152,6 +157,82 @@ module.exports = {
             success: true,
             results: results
         };
+    },
+
+    simulateKeyPresses: function(page, data, callback) {
+        var selectors = Object.keys(data),
+            result = { success: true, results: [] };
+        (function focusElements(selectorIndex) {
+            if (selectorIndex >= selectors.length || !result.success) {
+                callback(result);
+                return;
+            }
+
+            var elSelector = selectors[selectorIndex],
+                entry = data[elSelector],
+                pressEnter = !!entry.enter;
+
+            (function performKeyPresses(index, count) {
+                if (count !== undefined && index >= count) {
+                    focusElements(selectorIndex + 1);
+                    return;
+                }
+
+                page.evaluate(function(selector, keypress, nodeIndex) {
+                    var nodes;
+
+                    if (!keypress) {
+                        return {
+                            success: true,
+                            count: 0
+                        };
+                    }
+
+                    // Just in case we get a bad selector
+                    try {
+                        nodes = document.querySelectorAll(selector);
+                    } catch (exc) {
+                        return {
+                            success: false,
+                            selector: selector,
+                            count: -1
+                        };
+                    }
+
+                    if (nodes.length === 0) {
+                        return {
+                            success: false,
+                            selector: selector,
+                            count: -1
+                        };
+                    }
+
+                    nodes[nodeIndex].focus();
+
+                    return {
+                        success: true,
+                        count: nodes.length
+                    };
+                }, function(newResult) {
+                    result.success = newResult.success;
+                    result.count = newResult.count;
+
+                    if (!newResult.success || newResult.count <= 0) {
+                        callback(result);
+                        return;
+                    } else if (newResult.success) {
+                        page.sendEvent('keypress', entry.value, null, null, 0);
+                        result.results.push({ selector: elSelector, value: entry.value });
+
+                        if (pressEnter) {
+                            page.sendEvent('keypress', 16777221, null, null, 0);
+                        }
+                    }
+
+                    performKeyPresses(index + 1, result.count);
+                }, elSelector, !!entry.keypress, index);
+            })(0);
+        })(0);
     },
 
     followLink: function(options) {
@@ -204,18 +285,20 @@ module.exports = {
             } else if (submit) {
                 // Submit a form
                 // TODO: Make check for 'form' selector
-                var event = document.createEvent('Event');
-                event.initEvent('submit', true, false);
-                node.dispatchEvent(event);
-                return {
-                    success: true,
-                    url: window.location.href
-                };
+                if (node.tagName === 'FORM') {
+                    node.submit();
+
+                    return {
+                        success: true,
+                        url: window.location
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: 'submit'
+                    };
+                }
             } else if (follow) {
-                return {
-                    success: true
-                };
-                /*
                 // Get the URL from an element and go there
                 var href = node.getAttribute('href');
                 if (href) {
@@ -230,7 +313,6 @@ module.exports = {
                         error: 'follow'
                     };
                 }
-                */
             } else {
                 return {
                     success: false,
@@ -244,5 +326,10 @@ module.exports = {
                 selector: selector
             };
         }
+
+        return {
+            success: true,
+            url: window.location.href
+        };
     }
 };

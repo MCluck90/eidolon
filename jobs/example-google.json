@@ -17,12 +17,11 @@
         {
             "name": "Click First Result",
             "confirm": {
-                "selector": "li.g",
+                "selector": "h3.r",
                 "exists": true
             },
             "link": {
-                "waitForPageLoad": true,
-                "selector": "li.g:first-child a",
+                "selector": "h3.r:first-child a",
                 "follow": true
             }
         }

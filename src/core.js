@@ -25,7 +25,10 @@ module.exports.loadUrl = function(options) {
     phantom.create('--load-images=no', function(ph) {
         ph.createPage(function(page) {
             // Create a reference so we can exit after we're done
-            page.exit = ph.exit;
+            page.exit = function() {
+                this.close();
+                ph.exit();
+            };
 
             page.open(options.url, function(status) {
                 if (status !== 'success') {
@@ -40,8 +43,8 @@ module.exports.loadUrl = function(options) {
 
 module.exports.init = function(job) {
     var log = (job.verbose) ? console.log : function(){};
-    log('\nRunning: ' + style.jobHeader(job.name));
 
+    log('\nRunning: ' + style.jobHeader(job.name));
     log(style.ajax('Loading ') + style.url(job.initURL));
     module.exports.loadUrl({
         url: job.initURL,
@@ -59,7 +62,9 @@ module.exports.init = function(job) {
 
 module.exports.confirm = function(job, step) {
     var page = job.getPage(),
-        log  = (job.verbose) ? console.log : function(){};
+        log  = (job.verbose) ? console.log : function(){},
+        timeout = (step.confirm.timeout === undefined) ? 15000 : step.confirm.timeout * 1000,
+        start = new Date();
 
     page.set('onError', function(msg, trace) {
         job.emit('confirm-error', step, {
@@ -72,16 +77,25 @@ module.exports.confirm = function(job, step) {
         });
     });
 
+    log('Running Step: ' + style.stepHeader(step.name));
     log(style.progress('Confirming ') + style.stepHeader(step.name));
-    page.evaluate(helper.confirmCondition, function(result) {
-        if (result.confirmed) {
-            log(style.stepHeader(step.name) + style.success(' Confirmed'));
-            job.emit('confirm', step, result);
-        } else {
-            log(style.error('Failed to confirm ') + style.stepHeader(step.name));
-            job.emit('confirm-error', step, result);
-        }
-    }, step.confirm);
+    var confirmPage = function() {
+        page.evaluate(helper.confirmCondition, function(result) {
+            if (!result.confirmed && new Date() - start < timeout) {
+                setTimeout(confirmPage, 500);
+                return;
+            }
+
+            if (result.confirmed) {
+                log(style.stepHeader(step.name) + style.success(' Confirmed'));
+                job.emit('confirm', step, result);
+            } else {
+                log(style.error('Failed to confirm ') + style.stepHeader(step.name));
+                job.emit('confirm-error', step, result);
+            }
+        }, step.confirm);
+    };
+    confirmPage();
 };
 
 module.exports.fillFields = function(job, step, data) {
@@ -99,12 +113,13 @@ module.exports.fillFields = function(job, step, data) {
         });
     });
 
-    log('Running Step: ' + style.stepHeader(step.name));
     log(style.progress('Setting field values'));
     page.evaluate(helper.setFieldValues, function(result) {
         if (result.success) {
-            log(style.success('Field values set'));
-            job.emit('fill', step, result);
+            helper.simulateKeyPresses(page, data.fields, function(result) {
+                log(style.success('Field values set'));
+                job.emit('fill', step, result);
+            });
         } else {
             log(style.error('Failed to set field values'));
             job.emit('fill-error', step, result);
@@ -120,7 +135,7 @@ module.exports.followLink = function(job, step) {
         linkStatus       = 200,
         allow404         = !!link.allow404,
         waitForUrlChange = !!link.waitForUrlChange,
-        waitForPageLoad  = !!link.waitForPageLoad || !!link.url;
+        waitForPageLoad  = !!link.waitForPageLoad || !!link.url || !link.submit;
 
     page.set('onError', function(msg, trace) {
         job.emit('link-error', step, {

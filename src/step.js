@@ -28,7 +28,7 @@ Step = function(options) {
     this.name = (options.name.length > 0) ? options.name : this.name;
     this.confirm = (options.confirm && options.confirm.selector.length > 0) ? options.confirm : this.confirm;
     this.waitForReload = !!options.waitForReload;
-    this.link = (options.link && options.link.selector.length > 0) ? options.link : this.link;
+    this.link = options.link;
 };
 
 Step.prototype.loadConfig = function(configPath) {
