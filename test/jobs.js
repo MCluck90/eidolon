@@ -1,7 +1,7 @@
 'use strict';
 
-var Job = require('../src/job.js'),
-    auto = require('../src/core.js'),
+var Job = require('../lib/eidolon/job.js'),
+    auto = require('../lib/eidolon/core.js'),
     expect = require('expect.js'),
     verbose = false,
     job;
@@ -31,7 +31,7 @@ describe('Jobs', function() {
             describe('should succeed', function() {
                 it('when loading with `loadConfig`', function(done) {
                     job = new Job();
-                    job.loadConfig('../examples/example-google.json');
+                    job.loadConfig('../../examples/example-google.json');
 
                     expect(job.name).to.be.eql('Example Job');
                     done();
@@ -39,7 +39,7 @@ describe('Jobs', function() {
 
                 it('when loading data with `loadData`', function(done) {
                     job = new Job();
-                    job.loadData('../examples/data/example-google.json');
+                    job.loadData('../../examples/data/example-google.json');
 
                     expect(job.data.name).to.be.eql('Example Job');
                     done();
@@ -47,7 +47,7 @@ describe('Jobs', function() {
 
                 it('when automatically loading in a config file', function(done) {
                     job = new Job({
-                        configPath: '../examples/example-google.json'
+                        configPath: '../../examples/example-google.json'
                     });
 
                     expect(job.name).to.be.eql('Example Job');
@@ -56,7 +56,7 @@ describe('Jobs', function() {
 
                 it('when automatically loading in a data file', function(done) {
                     job = new Job({
-                        dataPath: '../examples/data/example-google.json'
+                        dataPath: '../../examples/data/example-google.json'
                     });
 
                     expect(job.data.name).to.be.eql('Example Job');
@@ -107,7 +107,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: true,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -128,7 +128,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: true,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         initURL: 'not a valid URL',
                         verbose: verbose,
                         events: {
@@ -152,7 +152,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: true,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -180,7 +180,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autorun: false,
                         autostart: true,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         steps: [
                             {
@@ -219,8 +219,8 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: true,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
-                        dataPath: '../examples/data/example-google.json',
+                        configPath: '../../examples/example-google.json',
+                        dataPath: '../../examples/data/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -249,7 +249,7 @@ describe('Jobs', function() {
                         autostart: true,
                         autorun: false,
                         verbose: verbose,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         data: {
                             steps: [
                                 {
@@ -295,7 +295,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -327,7 +327,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -359,7 +359,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -391,7 +391,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -424,7 +424,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -452,7 +452,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -483,7 +483,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -513,7 +513,7 @@ describe('Jobs', function() {
                     job = new Job({
                         autostart: false,
                         autorun: false,
-                        configPath: '../examples/example-google.json',
+                        configPath: '../../examples/example-google.json',
                         verbose: verbose,
                         events: {
                             'init': function() {
@@ -550,8 +550,8 @@ describe('Jobs', function() {
                 job = new Job({
                     autostart: true,
                     verbose: verbose,
-                    configPath: '../examples/example-google.json',
-                    dataPath: '../examples/data/example-google.json',
+                    configPath: '../../examples/example-google.json',
+                    dataPath: '../../examples/data/example-google.json',
                     events: {
                         'init-error': function() {
                             asyncCheck(function() {

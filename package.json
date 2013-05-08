@@ -1,0 +1,31 @@
+{
+    "name": "eidolon",
+    "version": "0.1.0",
+    "description": "A simple way to automate tasks in a headless browser",
+    "keywords": ["headless", "browser", "phantomjs", "automate", "automation"],
+    "author": "Mike Cluck <mcluck90@gmail.com>",
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://github.com/MCluck90/eidolon/blob/master/LICENSE.txt"
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/MCluck90/eidolon.git"
+    },
+    "dependencies": {
+
+    },
+    "devDependencies": {
+        "mocha": "1.9.x",
+        "expect.js": "0.2.x"
+    },
+    "directories": {
+        "lib": "./lib/eidolon"
+    },
+    "main": "./lib/eidolon",
+    "engines": {
+        "node": "0.9.3"
+    }
+}

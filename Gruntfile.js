@@ -11,13 +11,13 @@ module.exports = function(grunt) {
             },
             all: {
                 files: {
-                    src: ['grunt.js', 'src/**/*.js', 'test/**/*.js']
+                    src: ['grunt.js', 'lib/**/*.js', 'test/**/*.js']
                 }
             }
         },
         watch: {
             all: {
-                files: ['src/**/*.js', 'test/**/*.js'],
+                files: ['lib/**/*.js', 'test/**/*.js'],
                 tasks: ['jshint', 'simplemocha']
             }
         },
