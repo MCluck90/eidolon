@@ -1,7 +1,7 @@
 'use strict';
 
 var util        = require('./util.js'),
-    helper     = require('./job-helper.js'),
+    helper     = require('./helper.js'),
     phantom     = require('phantom'),
     clc         = require('cli-color'),
     style = {
@@ -135,7 +135,7 @@ module.exports.followLink = function(job, step) {
         linkStatus       = 200,
         allow404         = !!link.allow404,
         waitForUrlChange = !!link.waitForUrlChange,
-        waitForPageLoad  = !!link.waitForPageLoad || !!link.url || !link.submit;
+        waitForPageLoad  = !!link.waitForPageLoad || !!link.url;
 
     page.set('onError', function(msg, trace) {
         job.emit('link-error', step, {

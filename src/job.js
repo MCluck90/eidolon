@@ -3,7 +3,6 @@
 var util = require('./util.js'),
     events = require('events'),
     auto = require('./core.js'),
-    Step = require('./step.js'),
 
 /**
  * Creates and handles running a job
@@ -128,7 +127,7 @@ Job.prototype.loadConfig = function(configPath) {
                     this.steps = [];
                     var steps = config[key];
                     for (var i = 0, len = steps.length; i < len; i++) {
-                        this.steps.push(new Step(steps[i]));
+                        this.steps.push(steps[i]);
                     }
                 }
             }

@@ -577,9 +577,5 @@ describe('Jobs', function() {
                 });
             });
         });
-
-        describe('should fail', function() {
-
-        });
     });
 });
