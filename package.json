@@ -1,6 +1,6 @@
 {
     "name": "eidolon",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A simple way to automate tasks in a headless browser",
     "keywords": ["headless", "browser", "phantomjs", "automate", "automation"],
     "author": "Mike Cluck <mcluck90@gmail.com>",
