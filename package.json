@@ -15,7 +15,8 @@
         "url": "http://github.com/MCluck90/eidolon.git"
     },
     "dependencies": {
-
+        "cli-color": "0.2.x",
+        "phantom": "0.4.x"
     },
     "devDependencies": {
         "mocha": "1.9.x",
