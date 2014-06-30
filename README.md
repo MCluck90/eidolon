@@ -2,11 +2,9 @@
 
 A simple way to automate tasks in a headless browser.
 
-## Install
+## DEPRECATED
 
-```bash
-$ npm install eidolon
-```
+This package was made ages ago and makes baby Jesus cry with how badly it works. Feel free to mess with it but I'm not responsible if you accidentally raise Hells minions.
 
 ## How it Works
 
